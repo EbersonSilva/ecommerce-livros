@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model Cliente {
+  id            String          @id @default(uuid())
+  codigoCliente String          @unique @default(uuid())
+  nome          String
+  genero        String?
+  dtNasc        String?
+  cpf           String?         @unique
+  tipoTelefone  String?
+  ddd           String?
+  numeroTelefone String?
+  email         String?         @unique
+  senha         String?
+  status        String          @default("ATIVO")
+  ranking       Int?            @default(0)
+
+  enderecos     Endereco[]
+  cartoes       CartaoCredito[]
+  transacoes    Transacao[]
+}
+
+model Endereco {
+  id           String       @id @default(uuid())
+  nomeEndereco String
+  tipoEndereco String
+  tipoResidencia String?
+  tipoLogradouro String?
+  logradouro   String?
+  numero       String?
+  bairro       String?
+  cep          String?
+  cidade       String?
+  estado       String?
+  pais         String?
+  observacao   String?
+
+  cliente      Cliente      @relation(fields: [clienteId], references: [id])
+  clienteId    String
+}
+
+model CartaoCredito {
+  id              String   @id @default(uuid())
+  numeroCartao    String
+  nomeImpresso    String
+  bandeira        String?
+  codigoSeguranca String?
+  preferencial    Boolean? @default(false)
+
+  cliente         Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId       String
+}
+
+model Transacao {
+  id        String  @id @default(uuid())
+  data      String
+  valor     Float
+  status    String
+
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+  clienteId String
+}

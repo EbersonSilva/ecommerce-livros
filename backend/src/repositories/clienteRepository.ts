@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid'
 const clientes: Cliente[] = []
 
 export const ClienteRepository = {
+  //Cria um novo cliente, gerando um ID único e preenchendo os campos obrigatórios
   create: (data: Partial<Cliente>): Cliente => {
     const novo: Cliente = {
       id: uuid(),
@@ -27,6 +28,7 @@ export const ClienteRepository = {
     return novo
   },
 
+  //Busca todos os clientes, podendo filtrar por nome, cpf ou email (parâmetro q) e por status (ATIVO, INATIVO, SUSPENSO)
   findAll: (query?: { q?: string; status?: string }): Cliente[] => {
     let r = clientes.slice()
     if (query?.q) {
@@ -38,7 +40,7 @@ export const ClienteRepository = {
     }
     return r
   },
-
+  
   findById: (id: string): Cliente | undefined => {
     return clientes.find(c => c.id === id)
   },

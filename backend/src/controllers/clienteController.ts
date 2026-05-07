@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { ClienteService } from '../services/clienteService'
 
 export const ClienteController = {
+  
   criar: (req: Request, res: Response) => {
     try {
       const c = ClienteService.criar(req.body)
