@@ -17,6 +17,17 @@ export const ClienteController = {
     res.json({ data: r })
   },
 
+  consultar: async (req: Request, res: Response) => {
+    const { tipo, valor } = req.query
+
+    if (!tipo || !valor || typeof tipo !== 'string' || typeof valor !== 'string') {
+      return res.status(400).json({ error: 'Informe tipo e valor da busca' })
+    }
+
+    const r = await ClienteService.consultarPor(tipo as 'nome' | 'cpf' | 'email', valor)
+    res.json({ data: r })
+  },
+
   buscar: async (req: Request, res: Response) => {
     const { id } = req.params
     const c = await ClienteService.buscarPorId(id)

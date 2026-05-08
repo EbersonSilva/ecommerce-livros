@@ -1,5 +1,7 @@
 import { Cliente } from '../models/Cliente'
 import { ClienteRepository } from '../repositories/clienteRepository'
+import { ClienteSearchContext } from '../strategies/clienteSearchContext'
+import { TipoBuscaCliente } from '../strategies/clienteSearchStrategy'
 
 export const ClienteService = {
   criar: async (data: Partial<Cliente>): Promise<Cliente> => {
@@ -10,6 +12,11 @@ export const ClienteService = {
 
   listar: async (q?: string, status?: string): Promise<Cliente[]> => {
     return await ClienteRepository.findAll({ q, status })
+  },
+
+  consultarPor: async (tipo: TipoBuscaCliente, valor: string): Promise<Cliente[]> => {
+    const context = new ClienteSearchContext(tipo)
+    return await context.buscar(valor)
   },
 
   buscarPorId: async (id: string): Promise<Cliente | null> => {
