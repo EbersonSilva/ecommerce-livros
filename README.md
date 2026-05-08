@@ -76,4 +76,4 @@ O frontend usa a variável `VITE_API_URL` para apontar para a API. Por padrão a
 - Recomendado: adicionar validações (CPF único, e-mail único) e autenticação (JWT) antes de produção.
 - Para migrar o projeto para outro DB, adapte `prisma/schema.prisma` e a `DATABASE_URL`.
 
-Se quiser, atualizo o README com exemplos mais detalhados, diagramas ou endpoints do frontend.
+
