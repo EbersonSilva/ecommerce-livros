@@ -1,58 +1,84 @@
+import prisma from '../prisma/client'
 import { Cliente } from '../models/Cliente'
-import { v4 as uuid } from 'uuid'
-
-const clientes: Cliente[] = []
 
 export const ClienteRepository = {
-  //Cria um novo cliente, gerando um ID único e preenchendo os campos obrigatórios
-  create: (data: Partial<Cliente>): Cliente => {
-    const novo: Cliente = {
-      id: uuid(),
-      codigoCliente: data.codigoCliente || uuid(),
-      nome: data.nome || '',
-      genero: data.genero,
-      dtNasc: data.dtNasc,
-      cpf: data.cpf,
-      tipoTelefone: data.tipoTelefone,
-      ddd: data.ddd,
-      numeroTelefone: data.numeroTelefone,
-      email: data.email,
-      senha: data.senha,
-      status: data.status || 'ATIVO',
-      ranking: data.ranking || 0,
-      enderecos: data.enderecos && data.enderecos.length ? data.enderecos : [],
-      cartoes: data.cartoes || [],
-      transacoes: data.transacoes || []
-    }
-    clientes.push(novo)
-    return novo
+  create: async (data: Partial<Cliente>): Promise<Cliente> => {
+    const enderecosData = data.enderecos?.map(e => ({
+      nomeEndereco: e.nomeEndereco,
+      tipoEndereco: e.tipoEndereco,
+      tipoResidencia: e.tipoResidencia,
+      tipoLogradouro: e.tipoLogradouro,
+      logradouro: e.logradouro,
+      numero: e.numero,
+      bairro: e.bairro,
+      cep: e.cep,
+      cidade: e.cidade,
+      estado: e.estado,
+      pais: e.pais,
+      observacao: e.observacao,
+    })) || []
+
+    return prisma.cliente.create({
+      data: {
+        nome: data.nome || '',
+        codigoCliente: data.codigoCliente,
+        genero: data.genero,
+        dtNasc: data.dtNasc,
+        cpf: data.cpf,
+        tipoTelefone: data.tipoTelefone,
+        ddd: data.ddd,
+        numeroTelefone: data.numeroTelefone,
+        email: data.email,
+        senha: data.senha,
+        status: data.status || 'ATIVO',
+        ranking: data.ranking || 0,
+        enderecos: { create: enderecosData }
+      },
+      include: { enderecos: true, cartoes: true, transacoes: true }
+    })
   },
 
-  //Busca todos os clientes, podendo filtrar por nome, cpf ou email (parâmetro q) e por status (ATIVO, INATIVO, SUSPENSO)
-  findAll: (query?: { q?: string; status?: string }): Cliente[] => {
-    let r = clientes.slice()
+  findAll: async (query?: { q?: string; status?: string }): Promise<Cliente[]> => {
+    const where: any = {}
+    
     if (query?.q) {
-      const q = query.q.toLowerCase()
-      r = r.filter(c => c.nome.toLowerCase().includes(q) || (c.cpf||'').includes(q) || (c.email||'').toLowerCase().includes(q))
+      where.OR = [
+        { nome: { contains: query.q, mode: 'insensitive' } },
+        { cpf: { contains: query.q } },
+        { email: { contains: query.q, mode: 'insensitive' } }
+      ]
     }
+    
     if (query?.status) {
-      r = r.filter(c => c.status === query.status)
+      where.status = query.status
     }
-    return r
-  },
-  
-  findById: (id: string): Cliente | undefined => {
-    return clientes.find(c => c.id === id)
+
+    return prisma.cliente.findMany({
+      where,
+      include: { enderecos: true, cartoes: true, transacoes: true }
+    })
   },
 
-  update: (id: string, patch: Partial<Cliente>): Cliente | undefined => {
-    const idx = clientes.findIndex(c => c.id === id)
-    if (idx === -1) return undefined
-    clientes[idx] = { ...clientes[idx], ...patch }
-    return clientes[idx]
+  findById: async (id: string): Promise<Cliente | null> => {
+    return prisma.cliente.findUnique({
+      where: { id },
+      include: { enderecos: true, cartoes: true, transacoes: true }
+    })
   },
 
-  inactivate: (id: string): Cliente | undefined => {
-    return ClienteRepository.update(id, { status: 'INATIVO' })
+  update: async (id: string, patch: Partial<Cliente>): Promise<Cliente | null> => {
+    return prisma.cliente.update({
+      where: { id },
+      data: patch,
+      include: { enderecos: true, cartoes: true, transacoes: true }
+    })
+  },
+
+  inactivate: async (id: string): Promise<Cliente | null> => {
+    return prisma.cliente.update({
+      where: { id },
+      data: { status: 'INATIVO' },
+      include: { enderecos: true, cartoes: true, transacoes: true }
+    })
   }
 }
